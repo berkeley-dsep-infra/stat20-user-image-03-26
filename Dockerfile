@@ -13,10 +13,6 @@ RUN apt-get update -qq && \
     apt-get install -y --no-install-recommends $(grep -v '^#' /tmp/apt.txt) && \
     apt-get clean && rm -rf /var/lib/apt/lists/* /tmp/apt.txt
 
-ENV SHINY_SERVER_URL=https://download3.rstudio.org/ubuntu-20.04/x86_64/shiny-server-1.5.23.1030-amd64.deb
-RUN curl --silent --location --fail ${SHINY_SERVER_URL} > /tmp/shiny-server.deb && \
-    apt install --no-install-recommends --yes /tmp/shiny-server.deb && \
-    rm /tmp/shiny-server.deb
 
 # google-chrome is for pagedown; chromium doesn't work nicely with it (snap?)
 RUN wget --quiet -O /tmp/chrome.deb https://dl.google.com/linux/direct/google-chrome-stable_current_amd64.deb && \
@@ -51,7 +47,6 @@ WORKDIR /home/${NB_USER}
 COPY install.R /tmp/install.R
 RUN Rscript /tmp/install.R
 
-COPY file-locks /etc/rstudio/file-locks
 
 # Prepare VS Code extensions
 USER root
