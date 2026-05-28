@@ -1,4 +1,4 @@
-FROM us-central1-docker.pkg.dev/ucb-datahub-2018/base-images-repo/base-r-image:c25cdff
+FROM us-central1-docker.pkg.dev/ucb-datahub-2018/base-images-repo/base-r-image:0d6b5ea
 
 USER root
 RUN apt-get update && apt-get install -y tini && rm -rf /var/lib/apt/lists/*
@@ -12,6 +12,15 @@ COPY apt.txt /tmp/apt.txt
 RUN apt-get update -qq && \
     apt-get install -y --no-install-recommends $(grep -v '^#' /tmp/apt.txt) && \
     apt-get clean && rm -rf /var/lib/apt/lists/* /tmp/apt.txt
+
+
+# google-chrome is for pagedown; chromium doesn't work nicely with it (snap?)
+RUN wget --quiet -O /tmp/chrome.deb https://dl.google.com/linux/direct/google-chrome-stable_current_amd64.deb && \
+    apt-get update > /dev/null && \
+    apt-get -qq install /tmp/chrome.deb > /dev/null && \
+    apt-get clean && \
+    rm -rf /var/lib/apt/lists/* && \
+    rm -f /tmp/chrome.deb
 
 # ------------------------------------------------------------
 # Conda / Python packages
@@ -36,8 +45,22 @@ USER ${NB_USER}
 WORKDIR /home/${NB_USER}
 
 COPY install.R /tmp/install.R
-RUN r /tmp/install.R
+RUN Rscript /tmp/install.R
 
+
+# Prepare VS Code extensions
+USER root
+ENV VSCODE_EXTENSIONS=${CONDA_DIR}/envs/notebook/share/code-server/extensions
+RUN install -d -o ${NB_USER} -g ${NB_USER} ${VSCODE_EXTENSIONS} && \
+    chown ${NB_USER}:${NB_USER} ${CONDA_DIR}/envs/notebook/share/code-server
+
+USER ${NB_USER}
+
+# Install Code Server Jupyter extension
+RUN ${CONDA_DIR}/envs/notebook/bin/code-server --extensions-dir ${VSCODE_EXTENSIONS} --install-extension ms-toolsai.jupyter@2025.4.1
+# Install Code Server Python extension
+RUN ${CONDA_DIR}/envs/notebook/bin/code-server --extensions-dir ${VSCODE_EXTENSIONS} --install-extension ms-python.python@2026.4.0
+RUN ${CONDA_DIR}/envs/notebook/bin/code-server --extensions-dir ${VSCODE_EXTENSIONS} --install-extension quarto.quarto@1.131.0
 RUN rm -rf /tmp/downloaded_packages/ /tmp/*.rds
 
 EXPOSE 8888

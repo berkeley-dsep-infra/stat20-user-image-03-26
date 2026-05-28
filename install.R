@@ -424,7 +424,14 @@ packages = list(
   "swirl" = "2.4.5",
   "tidycensus" = "1.7.1",
   "unvotes" = "0.3.0",
-  "xaringanthemer" = "0.4.3"
+  "xaringanthemer" = "0.4.3",
+  "MatchIt" = "4.7.2",
+  "optmatch" = "0.10.8",
+  "cobalt" = "4.6.2"
 )
 
 install_packages_with_versions(packages)
+pak::pak("mdbeckman/dcData@a900560")
+pak::pak("hadley/emo@3f03b11")
+pak::pak("andrewpbray/boxofdata@8afd934")
+pak::pak("stat20/stat20data@2536a78")
